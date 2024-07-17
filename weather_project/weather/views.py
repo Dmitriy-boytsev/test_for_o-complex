@@ -5,6 +5,8 @@ import requests_cache
 from django.http import JsonResponse
 from django.shortcuts import render
 from retry_requests import retry
+import pytz
+from datetime import datetime, timedelta
 
 from .forms import CityForm
 import openmeteo_requests
@@ -16,7 +18,6 @@ openmeteo = openmeteo_requests.Client(session=retry_session)
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
-
 
 def get_city_coordinates(city):
     """Получает координаты города по его названию"""
@@ -35,7 +36,6 @@ def get_city_coordinates(city):
         logger.error(f"Error getting coordinates for city: {city}, {e}")
     return None, None
 
-
 def get_weather_data(latitude, longitude):
     """Получает погодные данные для заданных координат"""
     url = "https://api.open-meteo.com/v1/forecast"
@@ -51,6 +51,14 @@ def get_weather_data(latitude, longitude):
         response = responses[0]
         hourly = response.Hourly()
         hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+        
+        # Получаем текущее время в часовой зоне UTC+3 (МСК)
+        now_msk = datetime.now(pytz.timezone('Europe/Moscow'))
+        
+        # Фильтруем данные, чтобы показать прогноз на следующие 12 часов
+        start_time_utc = now_msk.astimezone(pytz.utc)
+        end_time_utc = start_time_utc + timedelta(hours=12)
+        
         hourly_data = {
             "Время": pd.date_range(
                 start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
@@ -61,14 +69,19 @@ def get_weather_data(latitude, longitude):
             "Температура": hourly_temperature_2m
         }
         df = pd.DataFrame(data=hourly_data)
+        
+        # Фильтрация данных по времени
+        df = df[(df['Время'] >= start_time_utc) & (df['Время'] < end_time_utc)]
+        
+        # Преобразование времени и температуры в удобный формат
         df['Температура'] = df['Температура'].round().astype(int).astype(str) + '°C'
-        df['Время'] = df['Время'].dt.strftime('%H:%M')
+        df['Время'] = df['Время'].dt.tz_convert('Europe/Moscow').dt.strftime('%H:%M')
+        
         logger.info(f"Weather data for coordinates {latitude}, {longitude} successfully retrieved.")
-        return df.head(24)
+        return df
     except Exception as e:
         logger.error(f"Failed to get weather data for coordinates {latitude}, {longitude}. Error: {e}")
         return pd.DataFrame()
-
 
 def weather_view(request):
     """
