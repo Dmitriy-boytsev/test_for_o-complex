@@ -1,0 +1,12 @@
+*.pyc
+*.pyo
+__pycache__
+*.sqlite3
+*.log
+.env
+venv/
+.idea/
+.vscode/
+.dockerignore
+Dockerfile
+docker-compose.yml

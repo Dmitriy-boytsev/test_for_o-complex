@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Погода</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #6db3f2, #1e69de);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 400px; /* Устанавливаем максимальную ширину контейнера */
+            width: 100%;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        form p {
+            margin: 0;
+        }
+        input[type="text"], button {
+            width: calc(100% - 22px); /* Подгоняем ширину под поле ввода */
+            box-sizing: border-box; /* Включаем padding и border в общую ширину и высоту элемента */
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+        button {
+            background-color: #1e69de;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1453a6;
+        }
+        .weather-data {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px; /* Подгоняем padding для лучшего внешнего вида */
+            border-radius: 15px;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            max-height: 270px; /* Устанавливаем максимальную высоту */
+            overflow: auto; /* Разрешаем прокрутку */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1em; /* Подгоняем размер шрифта */
+            table-layout: fixed; /* Устанавливаем фиксированную ширину таблицы */
+        }
+        th, td {
+            padding: 10px; /* Подгоняем padding для лучшего внешнего вида */
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            word-wrap: break-word; /* Устанавливаем перенос слов */
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .weather-data::-webkit-scrollbar {
+            width: 8px;
+        }
+        .weather-data::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .weather-data::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        .error {
+            color: #ff6f6f;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Получите информацию о погоде</h1>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="city" placeholder="Город" required>
+            <button type="submit">Получить погоду</button>
+        </form>
+
+        {% if weather_data %}
+            <h2>Данные о погоде:</h2>
+            <div class="weather-data">
+                {{ weather_data|safe }}
+            </div>
+        {% endif %}
+        {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
